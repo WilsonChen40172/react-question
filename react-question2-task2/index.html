@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calendar</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      .calendar {
+        width: 100%;
+        max-width: 350px;
+        /* margin: 0 auto; */
+      }
+      .calendar-header {
+        text-align: center;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+      }
+      .calendar-header button {
+        background: none;
+        border: none;
+        cursor: pointer;
+      }
+      .calendar-days {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .calendar-day {
+        width: calc(100% / 7);
+        height: calc(100% / 5);
+        text-align: center;
+        line-height: 40px;
+        display: inline-block;
+        cursor: pointer;
+      }
+      .calendar-day:hover {
+        background-color: #e6e6e6;
+      }
+      .today {
+        background-color: lightyellow;
+      }
+      .selected {
+        background-color: #006edc;
+        color: #fff;
+      }
+      .highlight {
+        background-color: #ffff76;
+        color: #111;
+      }
+      .prev-month,
+      .next-month {
+        color: #aaa;
+        cursor: not-allowed;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="calendar" id="calendar">
+      <div class="calendar-header">
+        <button id="prevMonth">&lt;</button>
+        <span id="currentMonth"></span>
+        <button id="nextMonth">&gt;</button>
+      </div>
+      <div class="calendar-days" id="calendarDays"></div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const calendarDays = document.getElementById("calendarDays");
+        const currentMonthSpan = document.getElementById("currentMonth");
+        const prevMonthBtn = document.getElementById("prevMonth");
+        const nextMonthBtn = document.getElementById("nextMonth");
+
+        let selectedStartDate = null;
+        let selectedEndDate = null;
+
+        function renderCalendar(month, year) {
+          const daysInMonth = new Date(year, month + 1, 0).getDate();
+          const firstDayOfMonth = new Date(year, month, 1).getDay();
+          const lastDayOfMonth = new Date(year, month, daysInMonth).getDay();
+
+          currentMonthSpan.textContent = `${year}年${getMonthName(month)}`;
+
+          let html = "";
+          const prevMonthDays = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+          const nextMonthDays = lastDayOfMonth === 0 ? 0 : 7 - lastDayOfMonth;
+          const totalDays = prevMonthDays + daysInMonth + nextMonthDays;
+
+          const prevMonthLastDay = new Date(year, month, 0).getDate();
+
+          let dayCount = 0;
+          for (let i = 0; i < totalDays; i++) {
+            let day;
+            if (i < prevMonthDays) {
+              day = prevMonthLastDay - prevMonthDays + i + 1;
+              html += `<div class="calendar-day prev-month">${day}日</div>`;
+              dayCount++;
+            } else if (i >= prevMonthDays + daysInMonth) {
+              day = i - prevMonthDays - daysInMonth + 1;
+              html += `<div class="calendar-day next-month">${day}日</div>`;
+              dayCount++;
+            } else {
+              day = i - prevMonthDays + 1;
+              const date = new Date(year, month, day);
+              const isToday = isSameDate(date, new Date());
+
+              html += `<div id="day-${day}" class="calendar-day ${
+                isToday ? "today" : ""
+              } ${isSelected(date) ? "selected" : ""} ${
+                isToday ? "highlight" : ""
+              }">${day}日</div>`;
+              dayCount++;
+            }
+
+            if (dayCount === 7) {
+              html += "<br>";
+              dayCount = 0;
+            }
+          }
+
+          calendarDays.innerHTML = html;
+
+          const days = document.querySelectorAll(".calendar-day");
+          days.forEach((day) => {
+            day.addEventListener("click", handleDateClick);
+          });
+        }
+
+        function handleDateClick(event) {
+          const selectedDay = parseInt(event.target.textContent);
+          const clickedDate = new Date(currentYear, currentMonth, selectedDay);
+
+          if (selectedStartDate === null) {
+            // First click
+            selectedStartDate = clickedDate;
+            selectedEndDate = null;
+            clearSelection();
+            event.target.classList.add("selected");
+          } else if (isSelected(clickedDate)) {
+            // Second click on selected date, deselect
+            selectedStartDate = null;
+            selectedEndDate = null;
+            clearSelection();
+          } else if (selectedEndDate === null) {
+            // Second click
+            if (clickedDate < selectedStartDate) {
+              // Clicked date is before the start date, reset selection
+              selectedStartDate = clickedDate;
+              selectedEndDate = null;
+              clearSelection();
+              event.target.classList.add("selected");
+            } else {
+              // Select range
+              selectedEndDate = clickedDate;
+              const days = document.querySelectorAll(".calendar-day");
+              days.forEach((day) => {
+                const dayNumber = parseInt(day.textContent);
+                const currentDate = new Date(
+                  currentYear,
+                  currentMonth,
+                  dayNumber
+                );
+                if (
+                  currentDate >= selectedStartDate &&
+                  currentDate <= selectedEndDate
+                ) {
+                  day.classList.add("selected");
+                }
+              });
+            }
+          } else {
+            // Third click, reset selection
+            selectedStartDate = clickedDate;
+            selectedEndDate = null;
+            clearSelection();
+            event.target.classList.add("selected");
+          }
+        }
+
+        function clearSelection() {
+          const selectedCells = document.querySelectorAll(".selected");
+          selectedCells.forEach((cell) => {
+            cell.classList.remove("selected");
+          });
+        }
+
+        function isSelected(date) {
+          if (!selectedStartDate || !selectedEndDate) {
+            return false;
+          }
+          return date >= selectedStartDate && date <= selectedEndDate;
+        }
+
+        function isSameDate(date1, date2) {
+          return (
+            date1.getFullYear() === date2.getFullYear() &&
+            date1.getMonth() === date2.getMonth() &&
+            date1.getDate() === date2.getDate()
+          );
+        }
+
+        function getMonthName(month) {
+          const monthNames = [
+            "1月",
+            "2月",
+            "3月",
+            "4月",
+            "5月",
+            "6月",
+            "7月",
+            "8月",
+            "9月",
+            "10月",
+            "11月",
+            "12月",
+          ];
+          return monthNames[month];
+        }
+
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+
+        renderCalendar(currentMonth, currentYear);
+
+        prevMonthBtn.addEventListener("click", function () {
+          currentMonth--;
+          if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+          }
+          renderCalendar(currentMonth, currentYear);
+        });
+
+        nextMonthBtn.addEventListener("click", function () {
+          currentMonth++;
+          if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+          }
+          renderCalendar(currentMonth, currentYear);
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test1</title>
+  </head>
+  <body>
+    <script>
+      // test1
+
+      const data = [
+        {
+          firstName: "John",
+          lastName: "Doe",
+          customerID: "123",
+          note: "",
+          profession: "student",
+        },
+        {
+          firstName: "Alice",
+          lastName: "Smith",
+          customerID: "456",
+          note: "some note",
+          profession: "freelancer",
+        },
+        {
+          firstName: "Bob",
+          lastName: "Johnson",
+          customerID: "789",
+          note: "another note",
+          profession: "productOwner",
+        },
+        // Add more data as needed
+      ];
+
+      // Q1
+      sortUserName(data);
+      function sortUserName(user) {
+        // 定義職業的順序
+        const professionOrder = {
+          student: 0,
+          freelancer: 1,
+          productOwner: 2,
+          engineer: 3,
+          systemAnalytics: 4,
+        };
+
+        // 比較函數
+        function compare(a, b) {
+          const keyA = `${a.firstName}${a.lastName}${a.customerID}`;
+          const keyB = `${b.firstName}${b.lastName}${b.customerID}`;
+
+          if (keyA < keyB) {
+            return -1;
+          }
+          if (keyA > keyB) {
+            return 1;
+          }
+
+          return 0;
+        }
+
+        // 排序
+        user.sort(compare);
+
+        // 打印排序後的數據
+        user.forEach((item) => {
+          console.log(item);
+        });
+      }
+
+      // Q2
+      sortByType(data);
+      function sortByType(user) {
+        // 職業的排序順序
+        const professionOrder = {
+          student: 4,
+          freelancer: 3,
+          productOwner: 2,
+          engineer: 1,
+          systemAnalytics: 0,
+        };
+
+        // 比較函數
+        function compare(a, b) {
+          const orderA = professionOrder[a.profession];
+          const orderB = professionOrder[b.profession];
+
+          if (orderA < orderB) {
+            return -1;
+          }
+          if (orderA > orderB) {
+            return 1;
+          }
+
+          return 0;
+        }
+
+        // 排序
+        data.sort(compare);
+
+        // 打印排序後的數據
+        data.forEach((item) => {
+          console.log(item);
+        });
+      }
+    </script>
+  </body>
+</html>
