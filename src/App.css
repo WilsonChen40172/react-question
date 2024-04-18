@@ -60,3 +60,11 @@
   background-color: yellow;
   color: #111;
 }
+
+.App div.link {
+  margin: 10px;
+}
+
+a {
+  margin: 10px;
+}
